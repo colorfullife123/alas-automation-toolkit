@@ -1,0 +1,100 @@
+name: Validation
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Scan for private data and credentials
+        run: python3 tests/privacy_scan.py
+
+      - name: Parse Python files
+        run: python3 -m compileall -q nas tests
+
+      - name: Run supervisor tests
+        working-directory: nas/supervisor
+        run: python3 -m unittest -v test_alas_supervisor.py
+
+      - name: Run scheduler-control tests
+        working-directory: nas/scheduler-control
+        run: python3 -m unittest -v test_scheduler_control.py
+
+      - name: Run ADB failover tests
+        working-directory: nas/adb-failover
+        run: python3 -m unittest -v test_adb_failover.py
+
+      - name: Parse shell scripts
+        run: |
+          find nas tests -type f -name '*.sh' -print0 |
+            xargs -0 -r -n1 bash -n
+
+      - name: Run notification tests
+        run: bash tests/test_error_notify.sh
+
+      - name: Check whitespace
+        run: git diff --check
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Parse PowerShell files
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $files = Get-ChildItem -Path .\windows -Filter '*.ps1' -File -Recurse
+          $failed = $false
+
+          foreach ($file in $files) {
+              $tokens = $null
+              $errors = $null
+              [System.Management.Automation.Language.Parser]::ParseFile(
+                  $file.FullName,
+                  [ref]$tokens,
+                  [ref]$errors
+              ) | Out-Null
+
+              if ($errors.Count -gt 0) {
+                  $failed = $true
+                  Write-Host "Parse errors in $($file.FullName):" -ForegroundColor Red
+                  foreach ($parseError in $errors) {
+                      Write-Host (
+                          "  line $($parseError.Extent.StartLineNumber): " +
+                          $parseError.Message
+                      ) -ForegroundColor Red
+                  }
+              }
+          }
+
+          if ($failed) {
+              throw 'PowerShell parser validation failed.'
+          }
+
+      - name: Verify watchdog safety markers
+        shell: powershell
+        run: |
+          $watchdog = Get-Content .\windows\mumu-watchdog\mumu_watchdog.ps1 -Raw
+          $tests = Get-Content .\windows\mumu-watchdog\test_watchdog.ps1 -Raw
+
+          foreach ($marker in @('MUMU_WATCHDOG_OK', 'MUMU_SCREENSHOT_OK')) {
+              if ($watchdog -notmatch $marker) {
+                  throw "Required health marker is missing: $marker"
+              }
+          }
+
+          if ($tests -match 'NtSuspendProcess|NtResumeProcess') {
+              throw 'Unsafe process suspension API found in watchdog tests.'
+          }

@@ -1,0 +1,42 @@
+# Private configuration
+.env
+.env.*
+!.env.example
+*.conf
+!*.conf.example
+config.local.*
+secrets.*
+
+# Runtime state and logs
+*.log
+*.pid
+*.lock
+state.json
+runtime/
+log/
+logs/
+error/
+screenshots/
+
+# Backups and exported machine state
+*.bak
+*.bak-*
+*.pre-*
+backup-*/
+*.tar
+*.tar.gz
+*.zip
+*.xml
+
+# Python and test caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Editors and operating systems
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+Desktop.ini
