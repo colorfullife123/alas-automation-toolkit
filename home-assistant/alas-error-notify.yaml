@@ -1,0 +1,21 @@
+alias: ALAS 需要手动接管
+description: 仅在 ALAS 明确无法自动恢复时，将 MQTT 告警推送到手机
+triggers:
+  - trigger: mqtt
+    topic: nas/alas/error
+
+conditions: []
+
+actions:
+  - action: notify.mobile_app_your_phone
+    data:
+      title: ALAS 需要手动接管
+      message: "{{ trigger.payload }}"
+      data:
+        tag: alas-manual-takeover
+        group: alas
+        push:
+          sound: default
+
+mode: queued
+max: 5

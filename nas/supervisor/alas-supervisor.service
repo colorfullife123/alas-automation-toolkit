@@ -1,0 +1,17 @@
+[Unit]
+Description=Unified ADB and maintenance supervisor for ALAS
+Wants=network-online.target
+After=network-online.target docker.service
+
+[Service]
+Type=simple
+User=root
+EnvironmentFile=-/etc/default/alas-supervisor
+ExecStart=/usr/bin/python3 /opt/scripts/alas_supervisor.py --daemon
+Restart=always
+RestartSec=15
+TimeoutStopSec=25
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target

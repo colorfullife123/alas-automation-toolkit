@@ -1,0 +1,15 @@
+[Unit]
+Description=ALAS real-time manual-takeover monitor
+Wants=network-online.target docker.service
+After=network-online.target docker.service
+
+[Service]
+Type=simple
+User=root
+ExecStart=/opt/scripts/alas_monitor_realtime.sh
+Restart=always
+RestartSec=3
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

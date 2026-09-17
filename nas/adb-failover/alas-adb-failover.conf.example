@@ -1,0 +1,17 @@
+# Install as /etc/alas-adb-failover.conf, edit locally and keep mode 600.
+
+ALAS_ROOT="/path/to/AzurLaneAutoScript"
+
+# Stable endpoint used by ALAS and the adb_watcher container.
+ADB_FIXED_HOST="127.0.0.1"
+ADB_FIXED_PORT="16555"
+
+# HAProxy always prefers the primary while it is healthy.
+ADB_PRIMARY_HOST="192.0.2.20"
+ADB_PRIMARY_PORT="16384"
+
+# The backup is selected only while the primary health check fails.
+ADB_BACKUP_HOST="192.0.2.10"
+ADB_BACKUP_PORT="16416"
+
+ADB_CONNECT_TIMEOUT_SECONDS="2"

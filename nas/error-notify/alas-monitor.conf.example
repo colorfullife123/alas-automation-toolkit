@@ -1,0 +1,30 @@
+# Copy to /etc/alas-monitor.conf, replace values locally, then chmod 600.
+
+CONTAINER="alas"
+
+MQTT_HOST="192.0.2.20"
+MQTT_PORT="1883"
+MQTT_USER="change-me"
+MQTT_PASS="change-me"
+MQTT_TOPIC="nas/alas/error"
+MQTT_QOS="1"
+MQTT_TIMEOUT_SECONDS="10"
+
+# Optional screenshot handling. Leave either value empty to disable copying.
+ERROR_DIR="/path/to/AzurLaneAutoScript/log/error"
+IMAGE_TARGET="/path/to/shared/ALAS/error/latest.png"
+IMAGE_MAX_AGE_MINUTES="30"
+SCREENSHOT_DELAY_SECONDS="4"
+
+# Optional path that must be mounted before monitoring starts.
+WAIT_PATH=""
+LOOKBACK="15m"
+RECONNECT_SECONDS="2"
+ALERT_COOLDOWN_SECONDS="300"
+STATE_DIR="/var/lib/alas-manual-alert"
+LOCK_FILE="/run/alas-manual-alert.lock"
+HOST_LABEL="NAS"
+
+# Keep this limited to final human-takeover markers. Generic exceptions are
+# normally recoverable and should not trigger a phone notification.
+MANUAL_PATTERN='Request human takeover|Manual intervention required'

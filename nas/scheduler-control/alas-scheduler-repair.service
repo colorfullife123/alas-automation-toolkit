@@ -1,0 +1,12 @@
+[Unit]
+Description=Repair ALAS local scheduler control after updates
+Wants=docker.service
+After=docker.service network-online.target
+
+[Service]
+Type=oneshot
+User=root
+EnvironmentFile=-/etc/default/alas-scheduler-control
+ExecStart=/usr/bin/python3 /opt/scripts/install_alas_scheduler_control.py --repair
+TimeoutStartSec=240
+UMask=0027

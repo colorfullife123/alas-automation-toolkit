@@ -1,0 +1,33 @@
+services:
+  ALAS:
+    restart: unless-stopped
+    depends_on:
+      - adb_failover
+
+  adb_failover:
+    image: haproxy:3.2-alpine
+    container_name: alas-adb-failover
+    network_mode: host
+    restart: unless-stopped
+    volumes:
+      - ./config/haproxy-adb.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+
+  adb_watcher:
+    image: alas
+    container_name: alas-adb-watcher
+    network_mode: host
+    restart: unless-stopped
+    depends_on:
+      - adb_failover
+    environment:
+      ADB_FIXED_ENDPOINT: "${ADB_FIXED_ENDPOINT:-127.0.0.1:16555}"
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        while true; do
+          if ! timeout 3 adb -s "$${ADB_FIXED_ENDPOINT}" get-state 2>/dev/null | grep -qx device; then
+            adb disconnect "$${ADB_FIXED_ENDPOINT}" >/dev/null 2>&1 || true
+            timeout 5 adb connect "$${ADB_FIXED_ENDPOINT}" >/dev/null 2>&1 || true
+          fi
+          sleep 3
+        done

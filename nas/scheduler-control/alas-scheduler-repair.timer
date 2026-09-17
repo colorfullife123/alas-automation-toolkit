@@ -1,0 +1,12 @@
+[Unit]
+Description=Check ALAS scheduler control after updates
+
+[Timer]
+OnBootSec=45s
+OnUnitInactiveSec=60s
+AccuracySec=5s
+Persistent=true
+Unit=alas-scheduler-repair.service
+
+[Install]
+WantedBy=timers.target
